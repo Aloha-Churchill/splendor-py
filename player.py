@@ -59,3 +59,11 @@ class Player:
             if self.tokens[gemstone] < cost:
                 return False
         return True
+    
+    def can_draw_gemstone(self, gemstone_type: GemstoneType, bank: Bank) -> bool:
+        """
+        Check if the player can draw a specific type of gemstone from the bank.
+        Implement the logic according to the game rules.
+        """
+        # Example: Check if the bank has enough of the gemstone
+        return bank.can_remove_gemstones(gemstone_type, 1)

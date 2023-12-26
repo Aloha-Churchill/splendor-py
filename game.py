@@ -31,7 +31,16 @@ class Game:
         Property to get the current player.
         """
         return self.players[self.current_player_index]
-
+    
+    def acquire_noble_if_possible(self, player):
+        acquired_noble = None
+        for noble in self.noble_deck.items:
+            if player.can_acquire_noble(noble):
+                player.nobles.append(noble)
+                self.noble_deck.items.remove(noble)
+                acquired_noble = noble
+                break  # Assuming a player can only acquire one noble per turn
+        return acquired_noble
 
 
 

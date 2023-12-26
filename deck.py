@@ -19,6 +19,9 @@ class Deck:
     def add(self, item):
         self.items.append(item)
 
+    def remove(self, item):
+        self.items.remove(item)
+
     def __str__(self):
         return '\n'.join(str(item) for item in self.items)
 

@@ -12,6 +12,21 @@ class Player:
     resource_cards: List[Card] = field(default_factory=list)
     reserved_cards: List[Card] = field(default_factory=list)
 
+    def can_purchase(self, card: Card) -> bool:
+        # Check if the player can afford the card
+        for gemstone, cost in card.cost.items():
+            if self.tokens[gemstone] < cost:
+                return False
+        return True
+    
+    def can_draw_gemstone(self, gemstone_type: GemstoneType, bank: Bank) -> bool:
+        """
+        Check if the player can draw a specific type of gemstone from the bank.
+        Implement the logic according to the game rules.
+        """
+        # Example: Check if the bank has enough of the gemstone
+        return bank.can_remove_gemstones(gemstone_type, 1)
+
     def draw_token(self, gemstone: GemstoneType, amount: int = 1):
         """
         Method for a player to draw tokens.
@@ -19,19 +34,31 @@ class Player:
         self.tokens[gemstone] += amount
 
     def purchase_card(self, card: Card):
-        """
-        Method for a player to purchase a card.
-        This method should include logic to check if the player
-        has enough tokens and then deduct the cost from the player's tokens.
-        """
-        # Example check (to be expanded based on game rules)
-        if all(self.tokens[gemstone] >= cost for gemstone, cost in card.cost.items()):
-            self.resource_cards.append(card)
+        if self.can_purchase(card):
+            # Deduct the cost from the player's tokens
             for gemstone, cost in card.cost.items():
                 self.tokens[gemstone] -= cost
+            # Add the card to the player's hand
+            self.resource_cards.append(card)
             self.points += card.points
         else:
             raise ValueError("Not enough tokens to purchase the card")
+        
+    def can_acquire_noble(self, noble):
+        """
+        Check if the player has enough bonuses to acquire the noble.
+        """
+        player_bonuses = self.total_bonus()
+        return all(player_bonuses.get(gemstone, 0) >= required_amount for gemstone, required_amount in noble.cost.items())
+    
+    def total_bonus(self):
+        """
+        Calculate the total bonus gems the player has from their resource cards.
+        """
+        bonuses = {gemstone: 0 for gemstone in GemstoneType}
+        for card in self.resource_cards:
+            bonuses[card.bonus] += 1
+        return bonuses
 
     def reserve_card(self, card: Card, bank: Bank):
         self.reserved_cards.append(card)
@@ -53,17 +80,4 @@ class Player:
         return f"Player: {self.name}, Tokens: [{tokens_str}], Points: {self.points}"
 
 
-    def can_purchase(self, card: Card) -> bool:
-        # Check if the player can afford the card
-        for gemstone, cost in card.cost.items():
-            if self.tokens[gemstone] < cost:
-                return False
-        return True
-    
-    def can_draw_gemstone(self, gemstone_type: GemstoneType, bank: Bank) -> bool:
-        """
-        Check if the player can draw a specific type of gemstone from the bank.
-        Implement the logic according to the game rules.
-        """
-        # Example: Check if the bank has enough of the gemstone
-        return bank.can_remove_gemstones(gemstone_type, 1)
+

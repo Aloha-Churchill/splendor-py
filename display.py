@@ -3,18 +3,29 @@ from tkinter import ttk
 from tkinter import messagebox
 from gemstone import GemstoneType
 from tkinter import simpledialog
+from computer_player import ComputerPlayer
+
+s = ttk.Style()
+s.configure('TFrame', background='white')
+s.configure('TButton', background='green')
+s.configure('TLabel', background='red')
 
 def get_player_names():
     root = tk.Tk()
-    root.withdraw()  # Hide the main window
+    root.withdraw()
     player_names = []
+    computer_count = 0
     while True:
-        name = simpledialog.askstring("Player Name", "Enter player name (or leave blank to finish):", parent=root)
+        name = simpledialog.askstring("Player Name", "Enter player name (or type 'computer' for a computer player):", parent=root)
         if not name:
             break
+        if name.lower() == 'computer':
+            name = f"computer{computer_count}"
+            computer_count += 1
         player_names.append(name)
     root.destroy()
     return player_names
+
 
 def on_gemstone_click(gemstone_type, game, root):
     messagebox.showinfo("Gemstone Clicked", f"You clicked on {gemstone_type.value}")
@@ -54,7 +65,7 @@ def on_reserved_card_click(card, player, game, root):
         messagebox.showinfo("Action Not Allowed", "Not enough resources to purchase this card.")
 
 def create_card_frame(container, card, deck, game, root):
-    frame = ttk.Frame(container, padding="10", relief=tk.RAISED)
+    frame = ttk.Frame(container, padding="10", relief=tk.RAISED, style='TFrame')
     frame.bind("<Button-1>", lambda e, c=card, d=deck, g=game: on_card_click(c, d, g, root))
     ttk.Label(frame, text=f"Level: {card.level}").pack() if hasattr(card, 'level') else None
     cost_str = ', '.join(f"{gemstone_type.value}: {amount}" for gemstone_type, amount in card.cost.items())
@@ -92,14 +103,25 @@ def display_board(root, game):
     bank_frame = create_bank_frame(root, game.bank, game, root)
     bank_frame.grid(row=4, column=0, columnspan=4, padx=5, pady=5)
 
-    display_player_info(root, game.current_player, game)
+    # display current player name
+    current_player = game.current_player
+    ttk.Label(root, text=f"Current Player: {current_player.name}", font=("Arial", 12, "bold")).grid(row=5, column=0, columnspan=4)
+    
+    # Starting row for player info, adjust this as needed
+    player_info_start_row = 7
+
+    # Display information for all players
+    for index, player in enumerate(game.players):
+        player_row = player_info_start_row + (index * 4)  # Adjust 4 based on the number of rows each player info takes
+        display_player_info(root, player, game, player_row)
 
     next_turn_button = ttk.Button(root, text="Next Turn", command=lambda: update_for_next_turn(root, game))
     next_turn_button.grid(row=6, column=0, columnspan=4)
 
-def display_player_info(root, player, game ):
+def display_player_info(root, player, game, row):
     player_info_frame = ttk.Frame(root, padding=10)
-    player_info_frame.grid(row=5, column=0, columnspan=4)
+    player_info_frame.grid(row=row, column=0, columnspan=4)
+
 
     # Player Name
     ttk.Label(player_info_frame, text=f"Current Player: {player.name}", font=("Arial", 12, "bold")).grid(row=0, column=0, sticky="w")
@@ -133,6 +155,8 @@ def update_display(root, game):
 def update_for_next_turn(root, game):
     game.next_turn()
     current_player = game.current_player
+    
+    # aquired noble
     acquired_noble = game.acquire_noble_if_possible(current_player)
     if acquired_noble:
         # Logic to handle drawing a new noble (if your deck supports it)
@@ -142,3 +166,10 @@ def update_for_next_turn(root, game):
         messagebox.showinfo("Noble Acquired", f"{current_player.name} has acquired a noble!")
     update_display(root, game)
 
+    # if computer player
+    if isinstance(current_player, ComputerPlayer):
+        action_message = current_player.take_turn(game)
+        messagebox.showinfo("Computer Player Turn", action_message)
+        print("Computer Player Turn")
+        print(action_message)
+        update_display(root, game)

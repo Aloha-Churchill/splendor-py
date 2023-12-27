@@ -24,6 +24,12 @@ class Deck:
 
     def __str__(self):
         return '\n'.join(str(item) for item in self.items)
+    
+    def __len__(self):
+        return len(self.items)
+    
+    def __iter__(self):
+        return iter(self.items)
 
 def initialize_decks_from_csv(file_path: str):
     df = pd.read_csv(file_path)
@@ -54,10 +60,3 @@ def initialize_decks_from_csv(file_path: str):
 
     # return the decks
     return Deck(cards_l1), Deck(cards_l2), Deck(cards_l3), Deck(nobles)
-
-# # Initialize the decks
-# card_deck_l1, card_deck_l2, card_deck_l3, noble_deck = initialize_decks_from_csv('./cards.csv')
-
-
-# # print(card_deck_l1)  # To display the deck of cards
-# # print(noble_deck)  # To display the deck of nobles

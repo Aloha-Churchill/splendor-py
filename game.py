@@ -12,6 +12,7 @@ class Game:
         self.bank = Bank()
         self.card_deck_l1, self.card_deck_l2, self.card_deck_l3, self.noble_deck = initialize_decks_from_csv('./cards.csv')
         self.current_player_index = 0
+        self.card_rows = [self.card_deck_l1, self.card_deck_l2, self.card_deck_l3]
 
         # shuffle the decks
         self.card_deck_l1.shuffle()
@@ -41,6 +42,14 @@ class Game:
                 acquired_noble = noble
                 break  # Assuming a player can only acquire one noble per turn
         return acquired_noble
+    
+    def remove_card_from_row(self, card):
+        if card.level == 1:
+            self.card_deck_l1.remove(card)
+        elif card.level == 2:
+            self.card_deck_l2.remove(card)
+        elif card.level == 3:
+            self.card_deck_l3.remove(card)
 
 
 

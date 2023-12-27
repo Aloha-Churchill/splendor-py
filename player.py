@@ -78,6 +78,3 @@ class Player:
     def __str__(self) -> str:
         tokens_str = ', '.join(f"{gemstone.value}: {amount}" for gemstone, amount in self.tokens.items())
         return f"Player: {self.name}, Tokens: [{tokens_str}], Points: {self.points}"
-
-
-

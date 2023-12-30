@@ -26,7 +26,8 @@ class ComputerPlayer(Player):
         return False
 
     def draw_3_unique_gems(self, game):
-        gemstones = random.sample([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 1], 3)
+        # Exclude GOLD from the selection
+        gemstones = random.sample([gt for gt in GemstoneType if gt != GemstoneType.GOLD and game.bank.gemstones[gt].quantity >= 1], 3)
         for gemstone in gemstones:
             self.tokens[gemstone] += 1
             game.bank.gemstones[gemstone].quantity -= 1
@@ -34,10 +35,14 @@ class ComputerPlayer(Player):
         return f"Drew 3 unique gems: {gemstone_names}"
 
     def draw_2_same_gems(self, game):
-        gemstone = random.choice([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 6])
-        self.tokens[gemstone] += 2
-        game.bank.gemstones[gemstone].quantity -= 2
-        return f"Drew 2 {gemstone.value} gems"
+        # Exclude GOLD from the selection and check for sufficient quantity
+        gemstone_options = [gt for gt in GemstoneType if gt != GemstoneType.GOLD and game.bank.gemstones[gt].quantity >= 6]
+        if gemstone_options:
+            gemstone = random.choice(gemstone_options)
+            self.tokens[gemstone] += 2
+            game.bank.gemstones[gemstone].quantity -= 2
+            return f"Drew 2 {gemstone.value} gems"
+        return "No action taken"
 
     def purchase_card(self, game):
         purchasable_cards = [card for row in game.card_rows for card in row if self.can_purchase(card)]
@@ -53,9 +58,6 @@ class ComputerPlayer(Player):
             card = random.choice(reservable_cards)
             super().reserve_card(card, game.bank)  # Pass the bank as an argument
             game.remove_card_from_row(card)
-            if game.bank.gemstones[GemstoneType.GOLD].quantity > 0:
-                self.tokens[GemstoneType.GOLD] += 1
-                game.bank.gemstones[GemstoneType.GOLD].quantity -= 1
             return "Reserved a card"
         return "No action taken"
     

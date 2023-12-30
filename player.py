@@ -13,11 +13,18 @@ class Player:
     reserved_cards: List[Card] = field(default_factory=list)
 
     def can_purchase(self, card: Card) -> bool:
-        # Check if the player can afford the card
+        total_shortfall = 0
+        player_bonuses = self.total_bonus()
+
         for gemstone, cost in card.cost.items():
-            if self.tokens[gemstone] < cost:
-                return False
-        return True
+            available = self.tokens.get(gemstone, 0) + player_bonuses.get(gemstone, 0)
+            shortfall = max(0, cost - available)
+            total_shortfall += shortfall
+
+        gold_tokens = self.tokens.get(GemstoneType.GOLD, 0)
+        return gold_tokens >= total_shortfall
+
+
     
     def can_draw_gemstone(self, gemstone_type: GemstoneType, bank: Bank) -> bool:
         """
@@ -35,15 +42,25 @@ class Player:
 
     def purchase_card(self, card: Card):
         if self.can_purchase(card):
-            # Deduct the cost from the player's tokens
+            player_bonuses = self.total_bonus()
+
             for gemstone, cost in card.cost.items():
-                self.tokens[gemstone] -= cost
+                bonus_available = player_bonuses.get(gemstone, 0)
+                token_available = self.tokens.get(gemstone, 0)
+                if token_available + bonus_available >= cost:
+                    shortfall = max(0, cost - bonus_available)
+                    if shortfall > 0:
+                        self.tokens[gemstone] -= shortfall
+                        if self.tokens[gemstone] < 0:  # Use gold if necessary
+                            self.tokens[GemstoneType.GOLD] += self.tokens[gemstone]
+                            self.tokens[gemstone] = 0
+
             # Add the card to the player's hand
             self.resource_cards.append(card)
             self.points += card.points
         else:
             raise ValueError("Not enough tokens to purchase the card")
-        
+
     def can_acquire_noble(self, noble):
         """
         Check if the player has enough bonuses to acquire the noble.
@@ -61,10 +78,13 @@ class Player:
         return bonuses
 
     def reserve_card(self, card: Card, bank: Bank):
-        self.reserved_cards.append(card)
-        if bank.can_remove_gemstones(GemstoneType.GOLD, 1):
-            self.tokens[GemstoneType.GOLD] += 1
-            bank.remove_gemstones(GemstoneType.GOLD, 1)
+        if len(self.reserved_cards) < 3:
+            self.reserved_cards.append(card)
+            if bank.can_remove_gemstones(GemstoneType.GOLD, 1):
+                self.tokens[GemstoneType.GOLD] += 1
+                bank.remove_gemstones(GemstoneType.GOLD, 1)
+        else:
+            raise ValueError("Cannot reserve more than 3 cards")
 
     def total_bonus(self) -> Dict[GemstoneType, int]:
         """

@@ -4,7 +4,6 @@ from display import display_board, get_player_names
 from player import Player
 from typing import List
 
-
 class Game:
     def __init__(self, players: List[Player]):
         # get initial game state
@@ -50,6 +49,3 @@ class Game:
             self.card_deck_l2.remove(card)
         elif card.level == 3:
             self.card_deck_l3.remove(card)
-
-
-

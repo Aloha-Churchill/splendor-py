@@ -23,4 +23,13 @@ class Bank:
         # Check if there are at least three types of gems with at least one available
         if sum(gemstone.quantity >= 1 for gemstone in self.gemstones.values()) >= 3:
             return True
+        
         return False
+
+    # has sufficient gems for 3_unique_gems
+    def has_sufficient_gems_for_3_unique_gems(self):
+        return sum(gemstone.quantity >= 1 for gemstone in self.gemstones.values()) >= 3
+    
+    # has sufficient gems for 2_same_gems
+    def has_sufficient_gems_for_2_same_gems(self):
+        return any(gemstone.quantity >= 6 for gemstone in self.gemstones.values())

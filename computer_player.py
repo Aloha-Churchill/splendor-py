@@ -3,8 +3,9 @@ import random
 from gemstone import GemstoneType
 
 class ComputerPlayer(Player):
+    
     def take_turn(self, game):
-        actions = [self.draw_gems, self.purchase_card, self.reserve_card, self.purchase_reserved_card]
+        actions = [self.draw_3_unique_gems, self.draw_2_same_gems, self.purchase_card, self.reserve_card]
         actions = [action for action in actions if self.can_perform_action(action, game)]
         if actions:
             action = random.choice(actions)
@@ -12,27 +13,31 @@ class ComputerPlayer(Player):
             return action_message
 
     def can_perform_action(self, action, game):
-        if action == self.draw_gems:
-            return game.bank.has_sufficient_gems_for_draw()
-        elif action == self.purchase_card or action == self.purchase_reserved_card:
-            return True
+        if action == self.draw_3_unique_gems:
+            return game.bank.has_sufficient_gems_for_3_unique_gems()
+        elif action == self.draw_2_same_gems:
+            return game.bank.has_sufficient_gems_for_2_same_gems()
+        elif action == self.purchase_card:
+            return any(self.can_purchase(card) for row in game.card_rows for card in row)
+        elif action == self.purchase_reserved_card:
+            return any(self.can_purchase(card) for card in self.reserved_cards)
         elif action == self.reserve_card:
             return any(len(row) > 0 for row in game.card_rows)
         return False
 
-    def draw_gems(self, game):
-        if random.choice([True, False]):
-            gemstone = random.choice([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 2])
-            self.tokens[gemstone] += 2
-            game.bank.gemstones[gemstone].quantity -= 2
-            return f"Drew 2 {gemstone.value} gems"
-        else:
-            gemstones = random.sample([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 1], 3)
-            for gemstone in gemstones:
-                self.tokens[gemstone] += 1
-                game.bank.gemstones[gemstone].quantity -= 1
-            gemstone_names = ', '.join([gt.value for gt in gemstones])
-            return f"Drew 3 unique gems: {gemstone_names}"
+    def draw_3_unique_gems(self, game):
+        gemstones = random.sample([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 1], 3)
+        for gemstone in gemstones:
+            self.tokens[gemstone] += 1
+            game.bank.gemstones[gemstone].quantity -= 1
+        gemstone_names = ', '.join([gt.value for gt in gemstones])
+        return f"Drew 3 unique gems: {gemstone_names}"
+
+    def draw_2_same_gems(self, game):
+        gemstone = random.choice([gt for gt in GemstoneType if game.bank.gemstones[gt].quantity >= 6])
+        self.tokens[gemstone] += 2
+        game.bank.gemstones[gemstone].quantity -= 2
+        return f"Drew 2 {gemstone.value} gems"
 
     def purchase_card(self, game):
         purchasable_cards = [card for row in game.card_rows for card in row if self.can_purchase(card)]

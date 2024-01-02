@@ -24,8 +24,6 @@ class Player:
         gold_tokens = self.tokens.get(GemstoneType.GOLD, 0)
         return gold_tokens >= total_shortfall
 
-
-    
     def can_draw_gemstone(self, gemstone_type: GemstoneType, bank: Bank) -> bool:
         """
         Check if the player can draw a specific type of gemstone from the bank.
@@ -84,7 +82,7 @@ class Player:
                 self.tokens[GemstoneType.GOLD] += 1
                 bank.remove_gemstones(GemstoneType.GOLD, 1)
         else:
-            raise ValueError("Cannot reserve more than 3 cards")
+            return "Cannot reserve more than 3 cards"
 
     def total_bonus(self) -> Dict[GemstoneType, int]:
         """

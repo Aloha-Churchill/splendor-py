@@ -1,9 +1,19 @@
-from player import Player
+from dataclasses import dataclass, field
+from typing import Dict, List
 import random
+
+from card import Card
+from bank import Bank
 from gemstone import GemstoneType
 
-class ComputerPlayer(Player):
-    
+@dataclass
+class ComputerPlayer():
+    name: str
+    tokens: Dict[GemstoneType, int] = field(default_factory=lambda: {gemstone: 0 for gemstone in GemstoneType})
+    points: int = 0
+    resource_cards: List[Card] = field(default_factory=list)
+    reserved_cards: List[Card] = field(default_factory=list)
+
     def take_turn(self, game):
         actions = [self.draw_3_unique_gems, self.draw_2_same_gems, self.purchase_card, self.reserve_card]
         actions = [action for action in actions if self.can_perform_action(action, game)]
@@ -69,3 +79,7 @@ class ComputerPlayer(Player):
                 self.reserved_cards.remove(card)
                 return f"Purchased a reserved card with {card.points} points"
         return "No action taken"
+    
+    # win condition
+    def has_won(self):
+        return self.points >= 15

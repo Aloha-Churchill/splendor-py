@@ -49,3 +49,7 @@ class Game:
             self.card_deck_l2.remove(card)
         elif card.level == 3:
             self.card_deck_l3.remove(card)
+
+    def __str__(self):
+        return f"Players: {self.players}\nBank: {self.bank}\nCard Deck L1: {self.card_deck_l1}\nCard Deck L2: {self.card_deck_l2}\nCard Deck L3: {self.card_deck_l3}\nNoble Deck: {self.noble_deck}"
+    
